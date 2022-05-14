@@ -21,6 +21,12 @@
 		<groupId>org.springframework.boot</groupId>
 		<artifactId>spring-boot-devtools</artifactId>
 	</dependency>
+	
+	<dependency>
+		<groupId>com.dailydrink</groupId>
+		<artifactId>DailyDrinkCommon</artifactId>
+		<version>0.0.1-SNAPSHOT</version>
+	</dependency>
 	</dependencies>
 
 	<build>
@@ -31,5 +37,4 @@
 			</plugin>
 		</plugins>
 	</build>
-
 </project>

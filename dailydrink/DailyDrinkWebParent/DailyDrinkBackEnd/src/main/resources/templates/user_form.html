@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en" 
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="_layout">
+      
+<body>
+	<div layout:fragment="content">
+		<div class="m-4">
+		 	<h2>Manage Users | [[${pageTitle}]] </h2>
+		 	<div th:if="${message != null}">
+			 	<div class="alert alert-success alert-dismissible fade show" role="alert">
+				  <strong th:text="${message}"></strong> 
+				  <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+				    <span aria-hidden="true">&times;</span>
+				  </button>
+				</div>
+			</div>	
+		 </div>
+	 	
+		<form th:action="@{/users/save}" method="post" style="max-width: 700px;margin: 0 auto;"
+			th:object="${user}" onsubmit="return checkEmailUnique(this);" enctype="multipart/form-data">
+			<input type="hidden" th:field="*{id}" />
+		<div class="border border-secondary rounded p-3">
+		  <div class="form-group row">
+		    <label class="col-sm-4 col-form-label" for="first_name">First Name</label>
+		    <div class="col-sm-8">
+		    	<input th:field="*{firstName}" required type="text" minlength="2" maxlength="45" class="form-control" aria-describedby="first_name" placeholder="Enter first name">
+		    </div>
+		  </div>
+		  
+		  <div class="form-group row">
+		    <label class="col-sm-4 col-form-label" for="last_name">Last Name</label>
+		    <div class="col-sm-8">
+		    	<input th:field="*{lastName}" required type="text" minlength="2" maxlength="45" class="form-control" aria-describedby="last_name" placeholder="Enter last name">
+		    </div>
+		  </div>
+		  
+		  <div class="form-group row">
+		    <label class="col-sm-4 col-form-label" for="email">Email address</label>
+		    	<div class="col-sm-8">
+		    		<input th:field="*{email}" required type="email" minlength="8" maxlength="30" class="form-control" aria-describedby="emailHelp" placeholder="Enter email">
+		    		<small id="emailHelp" class="form-text text-muted">We'll never share your email with anyone else.</small>
+		    	</div>
+		  </div>
+		  
+		  <div class="form-group row">
+		    <label class="col-sm-4 col-form-label" for="password">Password</label>
+		    	<div class="col-sm-8">
+		    		<input th:if="${user.id == null}" th:field="*{password}" required type="password" 
+		    		class="form-control" placeholder="Password">
+		    		
+		    		<input th:if="${user.id != null}" th:field="*{password}" type="password" 
+		    		class="form-control" placeholder="Password">
+		    	</div>
+		  </div>
+		  
+		  <div class="form-group row">
+		    <label class="col-sm-4 col-form-label" for="roles">Roles</label>
+		    	<div class="col-sm-8">
+		    		<th:block th:each="role : ${listRoles}" >
+		    			<input type="checkbox" class="m-2" th:field="*{roles}" th:text="${role.name}" th:value="${role.id}">
+		    			- <small>[[${role.description}]]</small>
+		    			 <br>
+		    		</th:block>
+		    	</div>
+		  </div>		  
+		 
+		  
+		  <div class="form-group row">
+		  	<label class="col-sm-4 col-form-label">Enabled</label>
+		  	<div class="col-sm-8" style="padding-left: 40px;">
+			    <input th:field="*{enabled}" type="checkbox">
+			 </div>
+		  </div>
+		  
+		  <div class="form-group row">
+		  	<label class="col-sm-4 col-form-label" for="image">Photos</label>
+		  		<div class="col-sm-8">
+		  		<input type="hidden" th:field="*{photo}" />
+    				<input class="mb-2" type="file" id="image" name="image" accept="image/png, image/jpeg" />
+    				<img id="thumbnail" alt="Photos preview" th:src="@{${user.getPhotosImagePath}}" 
+    					class="img-fluid" />   				
+		 		
+		  		</div>
+		  </div>
+		  
+		  <div class="text-center">
+		  	<input type="submit" class="btn btn-primary m-3" />
+		  	<input type="button" class="btn btn-secondary btn-cancel" value="Cancel" />
+		  </div>
+		</div>
+		</form>	
+		
+		<div id="modalDialog" class="modal fade" tabindex="-1" role="dialog">
+		  <div class="modal-dialog" role="document">
+		    <div class="modal-content">
+		      <div class="modal-header">
+		        <h5 class="modal-title"> <span id="modalTitle"></span></h5>
+		        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+		          <span aria-hidden="true">&times;</span>
+		        </button>
+		      </div>
+		      <div class="modal-body">
+		         <span id="modalBody"></span>
+		      </div>
+		      <div class="modal-footer">	       
+		        <button type="button" class="btn btn-danger" data-dismiss="modal">Close</button>
+		      </div>
+		    </div>
+		  </div>
+		</div>
+	</div>	
+</body>
+</html>
+
+<th:block layout:fragment="script">
+<script type="text/javascript">
+	$(document).ready(function() {
+		$(".btn-cancel").on("click", function() {
+			window.location = "[[@{/users}]]";
+		});
+		
+		$("#image").change(function() {
+			fileSize = this.files[0].size;
+			//alert(fileSize);
+			if(fileSize > 1048576) {
+				this.setCustomValidity("You must choose an image less than 1MB!");
+				this.reportValidity();
+			} else {
+				this.setCustomValidity("");
+				showImageThumbnail(this);
+			}
+		});
+	});
+	
+	function showImageThumbnail(fileInput) {
+		var file = fileInput.files[0];
+		var reader = new FileReader();
+		reader.onload = function(e) {
+			$("#thumbnail").attr("src", e.target.result);
+		};
+		
+		reader.readAsDataURL(file);
+	}
+		
+	function checkEmailUnique(form) {
+		url = "[[@{/users/check_email}]]";
+		userEmail = $("#email").val();
+		userId = $("#id").val();
+		csrfValue = $("input[name='_csrf']").val();
+		params = {email: userEmail, _csrf: csrfValue, id: userId};
+		
+		$.post(url, params, function(response) {
+			if(response == "OK") {
+				form.submit();
+			} else if(response == "Duplicated") {
+				showModalDialog("Warning", userEmail + " has been used!");
+			} else {	
+				showModalDialog("Error", "Unknown response from server");
+			}
+		}).fail(function() {
+			showModalDialog("Error", "Cannot connect to server!");		
+		});
+		return false;
+	}
+	
+	function showModalDialog(title, message) {
+		$("#modalTitle").text(title);
+		$("#modalBody").text(message);
+		$("#modalDialog").modal();
+	}
+	
+</script>
+</th:block>

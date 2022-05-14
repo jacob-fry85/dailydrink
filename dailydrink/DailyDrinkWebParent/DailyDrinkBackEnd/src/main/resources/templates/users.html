@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en" 
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="_layout">
+      
+<body>
+	<div layout:fragment="content">
+		 <div class="m-4">
+		 	<h2>Manage Users</h2>	 	
+		 	
+		 	<a th:href="@{/user/new}">Create New User</a>
+		 </div>
+	 
+		 <div>
+		 	<table class="table table-responsive-sm table-hover table-bordered table-striped">
+			 	<thead class = "thead-dark">
+			 		<tr>
+			 			<th scope="col">User Id</th>	 		
+			 			<th scope="col">Photos</th>	
+			 			<th scope="col">Email</th> 		
+			 			<th scope="col">First Name</th>	 		 	
+			 			<th scope="col">Last Name</th>			 		
+			 			<th scope="col">Roles</th>		 			 		
+			 			<th scope="col">Enabled</th>
+			 			<th scope="col">Action</th>
+			 		</tr>
+			 	</thead>
+			 	<tbody>
+			 		<tr th:each="user : ${listUsers}">
+			 			<td>[[${user.id}]]</td>
+			 			<td class="text-center">
+				 			<span th:if="${user.photo == null}" class="fas fa-portrait fa-3x icon-gray"></span>
+				 			<img th:if="${user.photo != null}" th:src="@{${user.getPhotosImagePath}}"
+				 			style="width:100px;"></img>
+			 			</td>
+			 			<td>[[${user.email}]]</td>
+			 			<td>[[${user.firstName}]]</td>
+			 			<td>[[${user.lastName}]]</td>
+			 			<td>[[${user.roles}]]</td>
+			 			<td class="text-center">			 				
+			 				<a th:if="${user.enabled == true}" class="fas fa-check-circle icon-blue" 
+			 				th:href="@{'/users/' + ${user.id} + '/update/false'}" title="Disable this user"></a>
+			 				<a th:if="${user.enabled == false}" class="fas fa-circle icon-gray" 
+			 				th:href="@{'/users/' + ${user.id} + '/update/true'}" title="Enable this user"></a>
+			 			</td>
+			 			<td class="text-center">
+			 			 <a class="fas fa-edit icon-green" th:href="@{'/users/edit/' + ${user.id}}"
+			 				title="Edit this user"></a> 
+			 			 &nbsp; 
+			 			 <a class="fa fa-trash icon-red link-delete" th:href="@{'/users/delete/' + ${user.id}}"
+			 			 	title="Delete this user" 
+			 			 	th:userId="${user.id}"></a>
+			 			</td>
+			 		</tr>
+			 	</tbody>
+		 	</table>
+		 </div>
+		 
+		 <div class="text-center m-2" th:if="${totalItems > 0}">
+		 	<span>Showing users number #[[${currentPage}]] to [[${endCount}]] of [[${totalItems}]]</span>
+		 </div>
+		 
+		 <div class="text-center m-2" th:unless="${totalItems > 0}">
+		 	<span>No users found</span>
+		 </div>
+		 
+		 <div class>
+			 <nav>
+				  <ul class="pagination justify-content-center">
+				    <li th:class="${currentPage > 1 ? 'page-item' : 'page-item disabled'}">
+				    	<a class="page-link" th:href="@{/users/page/1}">First</a>
+				    </li>
+				    <li th:class="${currentPage > 1 ? 'page-item' : 'page-item disabled'}">
+				    	<a class="page-link" th:href="@{'/users/page/' + ${currentPage - 1}}">Previous</a>
+				    </li>
+				    <li th:class="${currentPage != i ? 'page-item': 'page-item active'}" 
+				    	th:each="i : ${#numbers.sequence(1, totalPages)}">
+				    	<a class="page-link" th:href="@{'/users/page/' + ${i}}">[[${i}]]</a>
+				    </li>
+				    <li th:class="${currentPage < totalPages ? 'page-item' : 'page-item disabled'}">
+				    	<a class="page-link" th:href="@{'/users/page/' + ${currentPage + 1}}">Next</a>
+				    </li>
+				    <li  th:class="${currentPage < totalPages ? 'page-item' : 'page-item disabled'}">
+				    	<a class="page-link" th:href="@{'/users/page/' + ${lastPage}}">Last</a>
+				    </li>
+				  </ul>
+			</nav>
+		</div>
+		 
+		 <div id="modalDialog" class="modal fade" tabindex="-1" role="dialog">
+		  <div class="modal-dialog" role="document">
+		    <div class="modal-content">
+		      <div class="modal-header">
+		        <h5 class="modal-title"> <span id="modalTitle"></span></h5>
+		        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+		          <span aria-hidden="true">&times;</span>
+		        </button>
+		      </div>
+		      <div class="modal-body">
+		         <span id="modalBody"></span>
+		      </div>
+		      <div class="modal-footer">	       
+		      	<a id="yesButton" class="btn btn-success confirm-button"  
+			 			 	title="Delete this user" th:text="Yes"></a>
+		        <button type="button" class="btn btn-danger" data-dismiss="modal">Close</button>
+		      </div>
+		    </div>
+		  </div>
+		</div>
+	</div>	
+</body>
+</html>
+
+<th:block layout:fragment="script">
+	<script type="text/javascript">
+		$(".link-delete").on("click", function(e) {
+			e.preventDefault();
+			link = $(this);
+			userId = $(this).attr("userId");
+			$("#yesButton").attr("href", link.attr("href"));
+			showModalDialog("Delete Confirmation", "Are you sure want to delete id " + userId + "?");
+		});
+	
+		function showModalDialog(title, message) {
+			$("#modalTitle").text(title);
+			$("#modalBody").text(message);
+			$("#modalDialog").modal();
+		}
+	</script>
+</th:block>
